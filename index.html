@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Samurai Showdown</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      * {
+        box-sizing: border-box;
+        font-family: "Press Start 2P", system-ui;
+      }
+      body {
+        margin: 0;
+        background: #111;
+        overflow: hidden;
+      }
+
+      .menu-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 1024px; /* match canvas width */
+        height: 576px; /* match canvas height */
+        background: rgba(0, 0, 0, 0.7) url("./img/background.png") center/cover;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+      }
+
+      .menu-card {
+        background: rgba(34, 24, 12, 0.85);
+        padding: 30px 50px;
+        border: 3px solid #e0c097;
+        border-radius: 12px;
+        text-align: center;
+        font-family: "serif";
+        box-shadow: 0px 0px 15px #000;
+      }
+
+      .menu-card h1 {
+        color: #f0e6d2;
+        font-size: 40px;
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 6px #000;
+      }
+
+      .menu-card h2 {
+        color: #f0e6d2;
+        margin-bottom: 20px;
+        font-size: 14px;
+      }
+
+      .menu-btn {
+        font-size: 20px;
+        padding: 12px 28px;
+        border: none;
+        background: #8b5e3c;
+        color: #fff;
+        cursor: pointer;
+        border-radius: 8px;
+      }
+      .menu-btn:hover {
+        transform: scale(1.05);
+        background: #d94848;
+      }
+
+      #retryMenu {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Start Menu -->
+    <div id="startMenu" class="menu-overlay">
+      <div class="menu-card">
+        <h1>Samurai Showdown</h1>
+        <h2>Controls: W,A,D + Space</h2>
+        <button id="startBtn" class="menu-btn">Start Game</button>
+      </div>
+    </div>
+
+    <!-- Retry Menu -->
+    <div id="retryMenu" class="menu-overlay">
+      <div class="menu-card">
+        <h1 id="winnerText">Player Wins!</h1>
+        <button id="retryBtn" class="menu-btn">Retry</button>
+      </div>
+    </div>
+    <div style="position: relative; display: inline-block">
+      <div
+        style="
+          position: absolute;
+          display: flex;
+          width: 100%;
+          align-items: center;
+          padding: 20px;
+        "
+      >
+        <!-- Player Health -->
+        <div
+          style="
+            position: relative;
+            width: 100%;
+            display: flex;
+            justify-content: flex-end;
+            border-top: 4px solid white;
+            border-left: 4px solid white;
+            border-bottom: 4px solid white;
+            border-radius: 50px;
+            overflow: hidden;
+          "
+        >
+          <div
+            style="
+              background-color: #f44d60;
+              height: 30px;
+              width: 100%;
+              border-radius: 50px;
+            "
+          ></div>
+          <div
+            id="playerHealth"
+            style="
+              background: linear-gradient(to right, #818cf8, #4f5cdd);
+              position: absolute;
+              top: 0;
+              right: 0;
+              bottom: 0;
+              width: 100%;
+              border-radius: 50px;
+              transition: width 0.5s ease;
+            "
+          ></div>
+        </div>
+
+        <!-- Timer -->
+        <div
+          id="timer"
+          style="
+            background-color: black;
+            width: 100px;
+            height: 50px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            border: 4px solid white;
+            border-radius: 8px;
+            font-size: 24px;
+            font-weight: bold;
+            box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.3);
+            text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.7);
+          "
+        >
+          10
+        </div>
+
+        <!-- Enemy Health -->
+        <div
+          style="
+            position: relative;
+            width: 100%;
+            border-top: 4px solid white;
+            border-right: 4px solid white;
+            border-bottom: 4px solid white;
+            border-radius: 50px;
+            overflow: hidden;
+          "
+        >
+          <div
+            style="
+              background-color: #f44d60;
+              height: 30px;
+              width: 100%;
+              border-radius: 50px;
+            "
+          ></div>
+          <div
+            id="enemyHealth"
+            style="
+              background: linear-gradient(to right, #818cf8, #4f5cdd);
+              position: absolute;
+              top: 0;
+              right: 0;
+              bottom: 0;
+              left: 0;
+              border-radius: 50px;
+              transition: width 0.5s ease;
+            "
+          ></div>
+        </div>
+      </div>
+      <div
+        id="displayText"
+        style="
+          position: absolute;
+          color: white;
+          align-items: center;
+          justify-content: center;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          left: 0;
+          display: none;
+        "
+      >
+        Tie
+      </div>
+      <canvas></canvas>
+    </div>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"
+      integrity="sha512-H6cPm97FAsgIKmlBA4s774vqoN24V5gSQL4yBTDOY2su2DeXZVhQPxFK4P6GPdnZqM9fg1G3cMv5wD7e6cFLZQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script src="js/utils.js"></script>
+    <script src="js/classes.js"></script>
+
+    <script src="index.js"></script>
+  </body>
+</html>
