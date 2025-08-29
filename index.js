@@ -443,3 +443,135 @@ window.addEventListener("keyup", (event) => {
       break;
   }
 });
+
+/*   MOBILE TOUCH CONTROLS*/
+
+let touchStartX = 0;
+let touchStartY = 0;
+let touchEndX = 0;
+let touchEndY = 0;
+let dragging = false;
+let touchMoved = false;
+let attackBtnPressed = false;
+
+// utility to get touch coords relative to canvas
+function getTouchPosOnCanvas(touch) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: touch.clientX - rect.left,
+    y: touch.clientY - rect.top,
+  };
+}
+
+canvas.addEventListener(
+  "touchstart",
+  (e) => {
+    if (!gameRunning || window.gameOver) return;
+    if (player.dead) return;
+
+    // use first touch only
+    const touch = e.changedTouches[0];
+    const pos = getTouchPosOnCanvas(touch);
+    touchStartX = pos.x;
+    touchStartY = pos.y;
+    touchEndX = touchStartX;
+    touchEndY = touchStartY;
+    dragging = false;
+    touchMoved = false;
+
+    // prevent scrolling while interacting
+    e.preventDefault();
+  },
+  { passive: false }
+);
+
+canvas.addEventListener(
+  "touchmove",
+  (e) => {
+    if (!gameRunning || window.gameOver) return;
+    if (player.dead) return;
+
+    const touch = e.changedTouches[0];
+    const pos = getTouchPosOnCanvas(touch);
+    touchEndX = pos.x;
+    touchEndY = pos.y;
+
+    const dx = touchEndX - touchStartX;
+    const dy = touchEndY - touchStartY;
+
+    // treat as moved if over a small threshold
+    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) touchMoved = true;
+
+    // horizontal drag -> move left/right
+    if (Math.abs(dx) > Math.abs(dy)) {
+      if (dx > 30) {
+        // drag right
+        keys.d.pressed = true;
+        keys.a.pressed = false;
+        player.lastkey = "d";
+        player.facing = "right";
+      } else if (dx < -30) {
+        // drag left
+        keys.a.pressed = true;
+        keys.d.pressed = false;
+        player.lastkey = "a";
+        player.facing = "left";
+      }
+      dragging = true;
+    } else {
+      // vertical drag -> jump (drag up)
+      if (dy < -40) {
+        // move up on canvas (drag up) -> negative dy
+        player.velocity.y = -20;
+        dragging = true;
+      }
+    }
+
+    // prevent page scroll
+    e.preventDefault();
+  },
+  { passive: false }
+);
+
+canvas.addEventListener(
+  "touchend",
+  (e) => {
+    if (!gameRunning || window.gameOver) return;
+    if (player.dead) return;
+
+    const touch = e.changedTouches[0];
+    // touchEndX / Y already updated in touchmove; if no touchmove occurred, compute now:
+    if (!touchMoved) {
+      const pos = getTouchPosOnCanvas(touch);
+      touchEndX = pos.x;
+      touchEndY = pos.y;
+    }
+
+    // compute movement
+    const dx = touchEndX - touchStartX;
+    const dy = touchEndY - touchStartY;
+
+    // If attack button pressed, ignore canvas tap handling
+    if (!attackBtnPressed) {
+      // tap (small movement) => attack
+      if (!dragging && Math.abs(dx) < 10 && Math.abs(dy) < 10) {
+        player.attack();
+      }
+    }
+
+    // reset movement keys
+    keys.a.pressed = false;
+    keys.d.pressed = false;
+    dragging = false;
+    touchMoved = false;
+
+    // small safety reset for attackBtnPressed
+    setTimeout(() => {
+      attackBtnPressed = false;
+    }, 50);
+
+    // prevent page scroll
+    e.preventDefault();
+  },
+  { passive: false }
+);
