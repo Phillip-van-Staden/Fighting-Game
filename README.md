@@ -8,12 +8,19 @@ Includes a **start menu, retry menu, health bars, a timer**, and a simple but ef
 
 ## 🎮 Features
 
-- **Player Controls**
+- **Player Controls(Keyboard)**
 
   - `A` → Move Left
   - `D` → Move Right
   - `W` → Jump
   - `Space` → Attack
+
+- **Player Controls(Touch)**
+
+  - `Drag left` → Move Left
+  - `Drag right` → Move Right
+  - `Drag drag up` → Jump
+  - `Tap` → Attack
 
 - **Game Systems**
 
